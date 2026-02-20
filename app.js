@@ -20,6 +20,14 @@ const state = {
 const app = document.getElementById("app");
 const languageSelect = document.getElementById("languageSelect");
 const aboutEditorBtn = document.getElementById("aboutEditorBtn");
+const brandTitleEn = document.getElementById("brandTitleEn");
+const brandTitleCh = document.getElementById("brandTitleCh");
+
+function updateBrandTitle() {
+  const isChinese = state.lang === "ch";
+  brandTitleEn.hidden = isChinese;
+  brandTitleCh.hidden = !isChinese;
+}
 
 function loadSavedState() {
   try {
@@ -355,9 +363,11 @@ function renderRoute() {
 
 function bindGlobalControls() {
   languageSelect.value = state.lang;
+  updateBrandTitle();
   languageSelect.addEventListener("change", () => {
     state.lang = languageSelect.value;
     persistState();
+    updateBrandTitle();
     renderRoute();
   });
   aboutEditorBtn.addEventListener("click", () => routeTo("#/about"));

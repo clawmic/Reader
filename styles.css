@@ -50,13 +50,9 @@ body {
   line-height: 1.2;
 }
 
-.brand strong {
-  font-size: 1.5rem;
-}
-
-.brand span {
-  color: var(--muted);
-  font-size: 1.275rem;
+.brand-title {
+  font-size: 1.35rem;
+  color: var(--text);
 }
 
 .brand-icon {
