@@ -66,6 +66,41 @@ body {
   gap: 0.5rem;
 }
 
+.top-menu {
+  position: relative;
+}
+
+.popup-menu {
+  position: absolute;
+  top: calc(100% + 0.35rem);
+  right: 0;
+  display: grid;
+  gap: 0.35rem;
+  min-width: 170px;
+  padding: 0.45rem;
+  border: 1px solid var(--border);
+  border-radius: 0.6rem;
+  background: var(--panel);
+  box-shadow: 0 10px 24px rgba(30, 46, 92, 0.2);
+  z-index: 45;
+}
+
+.popup-menu a,
+.popup-menu button {
+  text-align: left;
+  text-decoration: none;
+  color: var(--text);
+  font: inherit;
+  font-size: 0.92rem;
+}
+
+.popup-menu a {
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  padding: 0.45rem 0.6rem;
+  background: var(--panel);
+}
+
 select,
 button {
   border: 1px solid var(--border);
