@@ -10,6 +10,7 @@ const state = {
   issues: [],
   editorAbout: { ch: "", en: "" },
   lang: "en",
+  librarySort: "desc",
   issueId: null,
   page: 0,
   zoom: 1,
@@ -33,6 +34,7 @@ function loadSavedState() {
   try {
     const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
     if (saved.lang === "en" || saved.lang === "ch") state.lang = saved.lang;
+    if (saved.librarySort === "asc" || saved.librarySort === "desc") state.librarySort = saved.librarySort;
     if (Number.isInteger(saved.issueId)) state.issueId = saved.issueId;
     if (Number.isInteger(saved.page)) state.page = saved.page;
   } catch (_) {
@@ -43,6 +45,7 @@ function loadSavedState() {
 function persistState() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify({
     lang: state.lang,
+    librarySort: state.librarySort,
     issueId: state.issueId,
     page: state.page
   }));
@@ -72,6 +75,14 @@ function getStartHint() {
 }
 
 function getAboutTitle() {
+  return state.lang === "ch" ? "關於編輯" : "About the Editor";
+}
+
+function getBackToLibraryLabel() {
+  return state.lang === "ch" ? "← 圖書館" : "← Library";
+}
+
+function getAboutEditorBtnLabel() {
   return state.lang === "ch" ? "關於編輯" : "About the Editor";
 }
 
@@ -122,16 +133,35 @@ function renderAbout() {
   const contactLine = document.createElement("div");
   contactLine.innerHTML = `\n\nContact: <a href="mailto:satoshi@kankakuya.com">satoshi@kankakuya.com</a>`;
   aboutContent.appendChild(contactLine);
-  document.getElementById("aboutBackBtn").addEventListener("click", () => routeTo("#/library"));
+  const aboutBackBtn = document.getElementById("aboutBackBtn");
+  aboutBackBtn.textContent = getBackToLibraryLabel();
+  aboutBackBtn.addEventListener("click", () => routeTo("#/library"));
 }
 
 function renderLibrary() {
   const tpl = document.getElementById("libraryTemplate");
   app.innerHTML = "";
   app.appendChild(tpl.content.cloneNode(true));
+  const sectionTitle = app.querySelector(".section-title");
+  sectionTitle.textContent = state.lang === "ch" ? "圖書館" : "Library";
+  const sortBtn = document.createElement("button");
+  sortBtn.type = "button";
+  sortBtn.textContent = state.lang === "ch"
+    ? `日期：${state.librarySort === "asc" ? "升冪" : "降冪"}`
+    : `Date: ${state.librarySort === "asc" ? "Ascending" : "Descending"}`;
+  sortBtn.addEventListener("click", () => {
+    state.librarySort = state.librarySort === "asc" ? "desc" : "asc";
+    persistState();
+    renderLibrary();
+  });
+  sectionTitle.insertAdjacentElement("afterend", sortBtn);
   const grid = document.getElementById("libraryGrid");
+  const sortedIssues = [...state.issues].sort((a, b) => {
+    const result = a.date.localeCompare(b.date);
+    return state.librarySort === "asc" ? result : -result;
+  });
 
-  state.issues.forEach((issue) => {
+  sortedIssues.forEach((issue) => {
     const card = document.createElement("article");
     card.className = "issue-card";
     const image = `<img src="${getThumb(issue)}" alt="${getTitle(issue)}">`;
@@ -143,8 +173,8 @@ function renderLibrary() {
         <div class="issue-meta">${issue.author} · ${issue.date}</div>
         <div class="issue-summary">${desc}</div>
         <div class="issue-actions">
-          <button data-open="${issue.issue_id}" type="button">Read</button>
-          <a href="${issue.url}" target="_blank" rel="noopener noreferrer">Source</a>
+          <button data-open="${issue.issue_id}" type="button">${state.lang === "ch" ? "閱讀" : "Read"}</button>
+          <a href="${issue.url}" target="_blank" rel="noopener noreferrer">${state.lang === "ch" ? "來源" : "Source"}</a>
         </div>
       </div>
     `;
@@ -230,7 +260,7 @@ function renderReader(issue, incomingPage) {
       image.hidden = true;
       introPage.hidden = false;
       zoomControls.style.visibility = "hidden";
-      nextPageBtn.textContent = "Start";
+      nextPageBtn.textContent = state.lang === "ch" ? "開始" : "Start";
       tapPrev.hidden = true;
       tapNext.hidden = true;
       introPage.innerHTML = `
@@ -246,7 +276,7 @@ function renderReader(issue, incomingPage) {
     introPage.hidden = true;
     image.hidden = false;
     zoomControls.style.visibility = "visible";
-    nextPageBtn.textContent = "Next";
+    nextPageBtn.textContent = state.lang === "ch" ? "下一頁" : "Next";
     tapPrev.hidden = false;
     tapNext.hidden = false;
     state.zoom = 1;
@@ -274,7 +304,10 @@ function renderReader(issue, incomingPage) {
     updatePage(state.page + 1);
   };
 
-  document.getElementById("backToLibraryBtn").addEventListener("click", () => routeTo("#/library"));
+  const backToLibraryBtn = document.getElementById("backToLibraryBtn");
+  backToLibraryBtn.textContent = getBackToLibraryLabel();
+  prevPageBtn.textContent = state.lang === "ch" ? "上一頁" : "Previous";
+  backToLibraryBtn.addEventListener("click", () => routeTo("#/library"));
   prevPageBtn.addEventListener("click", prev);
   nextPageBtn.addEventListener("click", next);
   tapPrev.addEventListener("click", prev);
@@ -364,10 +397,12 @@ function renderRoute() {
 function bindGlobalControls() {
   languageSelect.value = state.lang;
   updateBrandTitle();
+  aboutEditorBtn.textContent = getAboutEditorBtnLabel();
   languageSelect.addEventListener("change", () => {
     state.lang = languageSelect.value;
     persistState();
     updateBrandTitle();
+    aboutEditorBtn.textContent = getAboutEditorBtnLabel();
     renderRoute();
   });
   aboutEditorBtn.addEventListener("click", () => routeTo("#/about"));
