@@ -20,7 +20,11 @@ const state = {
 
 const app = document.getElementById("app");
 const languageSelect = document.getElementById("languageSelect");
-const aboutEditorBtn = document.getElementById("aboutEditorBtn");
+const menuToggleBtn = document.getElementById("menuToggleBtn");
+const popupMenu = document.getElementById("popupMenu");
+const menuAboutBtn = document.getElementById("menuAboutBtn");
+const menuXLink = document.getElementById("menuXLink");
+const menuInstagramLink = document.getElementById("menuInstagramLink");
 const brandTitleEn = document.getElementById("brandTitleEn");
 const brandTitleCh = document.getElementById("brandTitleCh");
 
@@ -84,6 +88,28 @@ function getBackToLibraryLabel() {
 
 function getAboutEditorBtnLabel() {
   return state.lang === "ch" ? "關於編輯" : "About the Editor";
+}
+
+function getMenuButtonLabel() {
+  return state.lang === "ch" ? "彈跳選單" : "Menu";
+}
+
+function closeTopMenu() {
+  popupMenu.hidden = true;
+  menuToggleBtn.setAttribute("aria-expanded", "false");
+}
+
+function updateTopMenuLabels() {
+  menuToggleBtn.textContent = getMenuButtonLabel();
+  menuAboutBtn.textContent = getAboutEditorBtnLabel();
+  menuXLink.textContent = "X";
+  menuInstagramLink.textContent = "Instagram";
+}
+
+function updateTopMenuVisibility() {
+  const isLibraryRoute = window.location.hash === "#/library";
+  menuToggleBtn.hidden = !isLibraryRoute;
+  if (!isLibraryRoute) closeTopMenu();
 }
 
 function getPages(issue) {
@@ -378,6 +404,7 @@ function renderRoute() {
     routeTo("#/library");
     return;
   }
+  updateTopMenuVisibility();
   if (window.location.hash === "#/about") {
     renderAbout();
     return;
@@ -397,15 +424,32 @@ function renderRoute() {
 function bindGlobalControls() {
   languageSelect.value = state.lang;
   updateBrandTitle();
-  aboutEditorBtn.textContent = getAboutEditorBtnLabel();
+  updateTopMenuLabels();
+  closeTopMenu();
   languageSelect.addEventListener("change", () => {
     state.lang = languageSelect.value;
     persistState();
     updateBrandTitle();
-    aboutEditorBtn.textContent = getAboutEditorBtnLabel();
+    updateTopMenuLabels();
     renderRoute();
   });
-  aboutEditorBtn.addEventListener("click", () => routeTo("#/about"));
+  menuToggleBtn.addEventListener("click", (event) => {
+    event.stopPropagation();
+    const expanded = menuToggleBtn.getAttribute("aria-expanded") === "true";
+    popupMenu.hidden = expanded;
+    menuToggleBtn.setAttribute("aria-expanded", expanded ? "false" : "true");
+  });
+  menuAboutBtn.addEventListener("click", () => {
+    closeTopMenu();
+    routeTo("#/about");
+  });
+  menuXLink.addEventListener("click", closeTopMenu);
+  menuInstagramLink.addEventListener("click", closeTopMenu);
+  document.addEventListener("click", (event) => {
+    if (popupMenu.hidden) return;
+    if (popupMenu.contains(event.target) || event.target === menuToggleBtn) return;
+    closeTopMenu();
+  });
   window.addEventListener("keydown", (e) => {
     if (!window.location.hash.startsWith("#/reader/")) return;
     const readerRoute = parseReaderRoute();
