@@ -1,4 +1,4 @@
-const CACHE_VERSION = "clawmic-v1.009";
+const CACHE_VERSION = "clawmic-v1.010";
 const APP_SHELL = ["index.html", "styles.css", "app.js", "comic_db.json", "about_the_editor.txt", "editor_photo.png"];
 
 function toCacheUrl(path) {
